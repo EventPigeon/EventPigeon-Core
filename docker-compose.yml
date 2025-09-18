@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+
+  api:
+    build: .
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ALERTS_STREAM=alerts
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  subscriber:
+    build: .
+    command: ["python", "-u", "subscriber/subscriber.py"]
+    depends_on:
+      - redis
+    profiles:
+      - demo
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - ALERTS_STREAM=alerts
+      - FROM_START=false
+    restart: unless-stopped
+
+volumes:
+  redis-data:

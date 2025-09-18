@@ -1,0 +1,16 @@
+services:
+  redis:
+    network_mode: host
+    ports: []
+    command: ["redis-server", "--appendonly", "yes"]
+
+  api:
+    network_mode: host
+    ports: []
+    build:
+      context: .
+      network: host
+    environment:
+      - REDIS_URL=redis://127.0.0.1:6379/0
+      - ALERTS_STREAM=alerts
+
